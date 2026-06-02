@@ -195,6 +195,7 @@ var isFlipped    = false;
 // ── Router ────────────────────────────────────────────────────────────────────
 var SCREENS = ["home","deck","study","complete","import"];
 function show(name) {
+  var SCREENS = ["browse", "create", "import"];
   SCREENS.forEach(function(s) {
     var el = document.getElementById("screen-" + s);
     if (el) el.classList.add("hidden");
@@ -202,6 +203,52 @@ function show(name) {
   var t = document.getElementById("screen-" + name);
   if (t) { t.classList.remove("hidden"); t.classList.add("fade-up"); }
   window.scrollTo(0, 0);
+}
+
+function initImportScreen() {
+  var uploadBtn = document.getElementById("upload-image-btn");
+  var fileInput = document.getElementById("file-input");
+  var preview = document.getElementById("image-preview");
+  var confirmBtn = document.getElementById("confirm-import-btn");
+  var previewContainer = document.getElementById("preview-container");
+  
+  uploadBtn.addEventListener("click", function() {
+    fileInput.click();
+  });
+  
+  fileInput.addEventListener("change", function(e) {
+    var file = e.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        preview.src = event.target.result;
+        preview.style.display = "block";
+        previewContainer.style.display = "block";
+        confirmBtn.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  confirmBtn.addEventListener("click", function() {
+    if (preview.src) {
+      var newCard = {
+        front: "",
+        back: "",
+        image: preview.src
+      };
+      window.importedImage = preview.src;
+      show("create");
+      document.getElementById("card-front").value = "";
+      document.getElementById("card-back").value = "";
+    }
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initImportScreen);
+} else {
+  initImportScreen();
 }
 
 function handleUploadImage() {
