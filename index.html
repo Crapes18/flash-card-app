@@ -204,6 +204,48 @@ function show(name) {
   window.scrollTo(0, 0);
 }
 
+function initImportDocument() {
+  var uploadBtn = document.getElementById("upload-image-btn");
+  var fileInput = document.getElementById("document-file-input");
+  var imagePreview = document.getElementById("image-preview");
+  var confirmBtn = document.getElementById("confirm-import-btn");
+  
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", function() {
+      fileInput.click();
+    });
+  }
+  
+  if (fileInput) {
+    fileInput.addEventListener("change", function(e) {
+      var file = e.target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          imagePreview.src = event.target.result;
+          imagePreview.parentElement.classList.remove("hidden");
+          confirmBtn.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+  
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", function() {
+      var imgSrc = imagePreview.src;
+      if (imgSrc) {
+        var cardForm = document.getElementById("card-form");
+        if (cardForm) {
+          var imgInput = document.getElementById("card-image-input");
+          if (imgInput) imgInput.value = imgSrc;
+        }
+        show("card-creation");
+      }
+    });
+  }
+}
+
 // ── Build home ────────────────────────────────────────────────────────────────
 function buildHome() {
   var a = APP_DATA.app;
