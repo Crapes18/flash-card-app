@@ -228,6 +228,7 @@ function show(name) {
     var el = document.getElementById("screen-" + s);
     if (el) el.classList.add("hidden");
   });
+  updateBreadcrumb();
   var t = document.getElementById("screen-" + name);
   if (t) { t.classList.remove("hidden"); t.classList.add("fade-up"); }
   window.scrollTo(0, 0);
