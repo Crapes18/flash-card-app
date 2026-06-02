@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Flashcard Decks</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Geist",sans-serif;background:#FEF9F0;min-height:100vh}
+.hidden{display:none!important}
+.btn{border:none;cursor:pointer;font-family:inherit;transition:transform 0.1s}
+.btn:active{transform:scale(0.97)}
+.back-btn{background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:6px;font-family:inherit;margin-bottom:16px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" style="min-height:100vh;background:linear-gradient(160deg,#FF6B6B 0%,#FF8E53 40%,#FFD93D 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+  <div style="font-size:80px;margin-bottom:16px;animation:bounce 2s infinite" id="home-emoji">🌟</div>
+  <h1 id="home-title" style="color:#fff;font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:12px;text-shadow:0 2px 12px rgba(0,0,0,0.15)"></h1>
+  <p id="home-subtitle" style="color:rgba(255,255,255,0.92);font-size:18px;margin-bottom:40px;max-width:360px;line-height:1.5"></p>
+  <div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px">
+    <button class="btn" id="btn-quiz" style="background:#fff;color:#FF6B6B;border:none;border-radius:99px;padding:18px 44px;font-size:20px;font-weight:800;box-shadow:0 8px 32px rgba(0,0,0,0.15)"></button>
+    <button class="btn" id="btn-explore" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid rgba(255,255,255,0.7);border-radius:99px;padding:16px 44px;font-size:17px;font-weight:700"></button>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="screen-categories" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
+  <h2 id="cat-title" style="font-size:24px;font-weight:800;color:#1A1A1A;margin-bottom:6px"></h2>
+  <p id="cat-subtitle" style="color:#888;margin-bottom:20px"></p>
+  <div id="cat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+  <button class="back-btn" id="cat-back" style="margin-top:20px">← Back</button>
+</div>
+
+<!-- CAREER LIST -->
+<div id="screen-list" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
+  <button class="back-btn" id="list-back">← All Categories</button>
+  <div id="list-header" style="margin-bottom:20px"></div>
+  <div id="list-grid"></div>
+</div>
+
+<!-- CAREER DETAIL -->
+<div id="screen-detail" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
+  <button class="back-btn" id="detail-back">← Back</button>
+  <div id="detail-content"></div>
+</div>
+
+<!-- QUIZ SCREENS (rendered dynamically) -->
+<div id="screen-q1" class="hidden"></div>
+<div id="screen-q2" class="hidden"></div>
+<div id="screen-q3" class="hidden"></div>
+
+<!-- RESULT -->
+<div id="screen-result" class="hidden" style="padding:24px;max-width:520px;margin:0 auto">
+  <div id="result-hero" style="border-radius:24px;padding:28px;text-align:center;margin-bottom:20px">
+    <div id="result-emoji" style="font-size:64px;margin-bottom:12px"></div>
+    <h2 id="result-title" style="font-size:26px;font-weight:900;margin-bottom:10px"></h2>
+    <p id="result-desc" style="font-size:15px;line-height:1.6;opacity:0.9"></p>
+  </div>
+  <h3 id="result-jobs-title" style="font-size:16px;font-weight:800;color:#1A1A1A;margin-bottom:12px"></h3>
+  <div id="result-jobs" style="margin-bottom:24px"></div>
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+    <button class="btn" id="btn-retry" style="flex:1;background:#1A1A1A;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:700"></button>
+    <button class="btn" id="btn-explore-result" style="flex:1;background:#F0E8FF;color:#6600BB;border-radius:14px;padding:14px;font-size:15px;font-weight:700"></button>
+  </div>
+</div>
+
+<!-- ATTRIBUTION FOOTER -->
+<div style="text-align:center;padding:24px 24px 32px;border-top:1px solid #E8E8E4;margin-top:8px">
+  <p style="font-size:12px;color:#A0A0A0;margin:0 0 4px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">About Our Data</p>
+  <p style="font-size:12px;color:#A0A0A0;margin:0;line-height:1.6">Job information sourced from <strong style="color:#6B6B6B">O*NET Web Services</strong> by the U.S. Department of Labor and <strong style="color:#6B6B6B">BLS Occupational Outlook Handbook</strong> 2024–2034 projections. Salary figures are median annual wages.</p>
+</div>
+
+<script>
+// ── App data injected by build system ────────────────────────────────────────
+var APP_DATA = {"home":{"emoji":"🃏","title":"Your Flashcard Decks","subtitle":"Study smarter, one card at a time. Tap a deck to start or create a new one!","quiz_button":"Create New Deck ➕","explore_button":"Browse All Decks 📚"},"categories_screen":{"title":"Your Decks","subtitle":"Tap any deck to study or long-press to delete"},"result_screen":{"title_prefix":"Session Complete!","jobs_title":"Your results:","retry_button":"Retry Missed Cards 🔄","explore_button":"Return Home 🏠"},"categories":[{"id":"sample_deck","name":"Sample Deck","emoji":"🌟","color":"#E07B00","bg":"#FFF3E8","desc":"A pre-loaded deck to get you started with flashcard studying!","tagline":"Start studying here"},{"id":"math","name":"Math Basics","emoji":"➗","color":"#0066CC","bg":"#E8F4FF","desc":"Practice fundamental math facts and formulas!","tagline":"Numbers and equations"},{"id":"science","name":"Science Terms","emoji":"🔬","color":"#CC0066","bg":"#FFF0F8","desc":"Master key science vocabulary and concepts!","tagline":"Explore and discover"},{"id":"history","name":"World History","emoji":"🏛️","color":"#00882B","bg":"#E8FFF0","desc":"Remember important dates, events, and people from history!","tagline":"Events and people"},{"id":"languages","name":"Language Learning","emoji":"🗣️","color":"#886600","bg":"#FFFBE8","desc":"Practice vocabulary and phrases in a new language!","tagline":"Words and phrases"},{"id":"custom","name":"My Custom Deck","emoji":"✏️","color":"#6600BB","bg":"#F0E8FF","desc":"Create your own deck with any cards you want to study!","tagline":"Your own content"}],"careers":[{"id":"card_001","cat":"sample_deck","emoji":"🌍","name":"What is the capital of France?","short":"A geography question to test your knowledge!","detail":"Paris is the capital and most populous city of France. It has been the country capital for centuries and is known as the City of Light.","typicalDay":"Front: What is the capital of France? | Back: Paris","skills":["Recall","Geography","Memorization"],"funFact":"Paris has been the capital of France since the late 10th century!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_002","cat":"sample_deck","emoji":"🧮","name":"What is 12 multiplied by 12?","short":"A classic multiplication question!","detail":"12 times 12 equals 144. Knowing your times tables up to 12 is a foundational math skill.","typicalDay":"Front: What is 12 x 12? | Back: 144","skills":["Arithmetic","Mental math","Memorization"],"funFact":"144 is also called a gross — a dozen dozens!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_003","cat":"sample_deck","emoji":"🔬","name":"What is the chemical symbol for water?","short":"A fundamental chemistry question!","detail":"The chemical symbol for water is H2O, meaning two hydrogen atoms bonded to one oxygen atom.","typicalDay":"Front: What is the chemical symbol for water? | Back: H2O","skills":["Chemistry","Science vocabulary","Recall"],"funFact":"About 60 percent of the human body is made of water!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_004","cat":"sample_deck","emoji":"📖","name":"Who wrote Romeo and Juliet?","short":"A classic literature question!","detail":"Romeo and Juliet was written by William Shakespeare, likely between 1594 and 1596. It is one of the most famous plays ever written.","typicalDay":"Front: Who wrote Romeo and Juliet? | Back: William Shakespeare","skills":["Literature","History","Recall"],"funFact":"Shakespeare wrote 37 plays and 154 sonnets during his lifetime!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_005","cat":"sample_deck","emoji":"🚀","name":"What planet is closest to the Sun?","short":"A solar system question!","detail":"Mercury is the closest planet to the Sun in our solar system. Despite being closest, it is not the hottest planet — that is Venus.","typicalDay":"Front: What planet is closest to the Sun? | Back: Mercury","skills":["Astronomy","Science","Recall"],"funFact":"A year on Mercury lasts only 88 Earth days!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_006","cat":"math","emoji":"📐","name":"What is the value of Pi to two decimal places?","short":"A key math constant to memorize!","detail":"Pi rounded to two decimal places is 3.14. It represents the ratio of a circle circumference to its diameter.","typicalDay":"Front: What is Pi to 2 decimal places? | Back: 3.14","skills":["Math constants","Geometry","Memorization"],"funFact":"Pi has been calculated to over 100 trillion decimal places and never repeats!","education":"Math Deck","future":false,"wage":"Flip to reveal"},{"id":"card_007","cat":"science","emoji":"⚡","name":"What is the powerhouse of the cell?","short":"A classic biology question!","detail":"The mitochondria is the powerhouse of the cell. It generates most of the cell energy through a process called cellular respiration.","typicalDay":"Front: What is the powerhouse of the cell? | Back: The mitochondria","skills":["Biology","Cell science","Recall"],"funFact":"Mitochondria have their own DNA, separate from the rest of the cell!","education":"Science Deck","future":false,"wage":"Flip to reveal"},{"id":"card_008","cat":"history","emoji":"🗽","name":"In what year did World War II end?","short":"An important historical date!","detail":"World War II ended in 1945. The war in Europe ended in May and the war in the Pacific ended in September of that year.","typicalDay":"Front: In what year did World War II end? | Back: 1945","skills":["History","Dates","Recall"],"funFact":"World War II involved more than 30 countries and over 100 million military personnel!","education":"History Deck","future":false,"wage":"Flip to reveal"},{"id":"card_009","cat":"languages","emoji":"🇪🇸","name":"How do you say hello in Spanish?","short":"A basic Spanish vocabulary card!","detail":"Hello in Spanish is Hola. It is one of the most recognized words in the Spanish language and used across all Spanish-speaking countries.","typicalDay":"Front: How do you say hello in Spanish? | Back: Hola","skills":["Spanish vocabulary","Language learning","Recall"],"funFact":"Spanish is spoken by over 500 million people worldwide as a native language!","education":"Language Deck","future":false,"wage":"Flip to reveal"},{"id":"card_010","cat":"custom","emoji":"✏️","name":"Your first custom card","short":"Add your own question and answer here!","detail":"This is a placeholder for your own custom flashcard. Edit the front and back text to study anything you want.","typicalDay":"Front: Your question here | Back: Your answer here","skills":["Custom content","Personal study","Any topic"],"funFact":"You can create unlimited cards on any topic you want to study!","education":"Custom Deck","future":false,"wage":"Flip to reveal"}],"quiz":[{"emoji":"📝","question":"Name your new deck","hint":"Type a name for your flashcard deck","answers":[{"cat":"math","emoji":"➗","text":"Math Basics","bg":"#FFF3E8"},{"cat":"science","emoji":"🔬","text":"Science Terms","bg":"#E8F4FF"},{"cat":"history","emoji":"🏛️","text":"World History","bg":"#FFF0F8"},{"cat":"languages","emoji":"🗣️","text":"Language Learning","bg":"#E8FFF0"},{"cat":"custom","emoji":"✏️","text":"My Custom Deck","bg":"#FFFBE8"},{"cat":"sample_deck","emoji":"🌟","text":"Sample Deck","bg":"#F0E8FF"}]},{"emoji":"➕","question":"Add a card to your deck","hint":"Enter the front and back text for your flashcard","answers":[{"cat":"front","emoji":"❓","text":"Front: Question or term","bg":"#FFF3E8"},{"cat":"back","emoji":"💡","text":"Back: Answer or definition","bg":"#E8F4FF"},{"cat":"add","emoji":"✅","text":"Add Card","bg":"#FFF0F8"},{"cat":"addmore","emoji":"➕","text":"Add Another Card","bg":"#E8FFF0"},{"cat":"done","emoji":"🎉","text":"Done — Save Deck","bg":"#FFFBE8"},{"cat":"cancel","emoji":"❌","text":"Cancel and Discard","bg":"#F0E8FF"}]},{"emoji":"🃏","question":"Study mode — tap the card to flip it!","hint":"Then mark whether you got it or missed it","answers":[{"cat":"gotit","emoji":"✅","text":"Got It","bg":"#E8FFF0"},{"cat":"missedit","emoji":"❌","text":"Missed It","bg":"#FFF0F8"},{"cat":"flip","emoji":"🔄","text":"Tap card to flip","bg":"#E8F4FF"},{"cat":"progress","emoji":"📊","text":"View progress so far","bg":"#FFF3E8"},{"cat":"quit","emoji":"🏠","text":"Quit session and return home","bg":"#FFFBE8"},{"cat":"next","emoji":"➡️","text":"Next Card","bg":"#F0E8FF"}]}]};
+
+// ── Screen router ─────────────────────────────────────────────────────────────
+var SCREENS = ["home","categories","list","detail","q1","q2","q3","result"];
+function show(name) {
+  SCREENS.forEach(function(s) {
+    var el = document.getElementById("screen-" + s);
+    if (el) el.classList.add("hidden");
+  });
+  var target = document.getElementById("screen-" + name);
+  if (target) target.classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+
+// ── Quiz state ────────────────────────────────────────────────────────────────
+var quizAnswers = [];
+
+// ── Build home screen ─────────────────────────────────────────────────────────
+function buildHome() {
+  var h = APP_DATA.home;
+  if (document.getElementById("home-emoji")) document.getElementById("home-emoji").textContent = h.emoji || "🌟";
+  document.getElementById("home-title").textContent = h.title;
+  document.getElementById("home-subtitle").textContent = h.subtitle;
+  var btnQuiz = document.getElementById("btn-quiz");
+  btnQuiz.textContent = h.quiz_button || "Take the Quiz! ✨";
+  btnQuiz.addEventListener("click", function() { show("q1"); });
+  var btnExplore = document.getElementById("btn-explore");
+  btnExplore.textContent = h.explore_button || "Explore All Jobs 🗺️";
+  btnExplore.addEventListener("click", function() { show("categories"); });
+}
+
+// ── Build categories screen ───────────────────────────────────────────────────
+function buildCategories() {
+  document.getElementById("cat-title").textContent = APP_DATA.categories_screen.title || "Pick a Category";
+  document.getElementById("cat-subtitle").textContent = APP_DATA.categories_screen.subtitle || "Tap any to see the jobs inside";
+  document.getElementById("cat-back").addEventListener("click", function() { show("home"); });
+
+  var grid = document.getElementById("cat-grid");
+  APP_DATA.categories.forEach(function(cat) {
+    var btn = document.createElement("button");
+    btn.className = "btn";
+    btn.style.cssText = "background:" + cat.bg + ";border:none;border-radius:20px;padding:20px 16px;text-align:left;cursor:pointer;width:100%";
+    btn.innerHTML = '<div style="font-size:36px;margin-bottom:8px">' + cat.emoji + '</div>' +
+      '<div style="font-size:16px;font-weight:800;color:' + cat.color + '">' + cat.name + '</div>' +
+      '<div style="font-size:12px;color:#888;margin-top:2px">' + (cat.tagline || "") + '</div>';
+    btn.setAttribute("data-catid", cat.id);
+    btn.addEventListener("click", function() { showCategory(this.getAttribute("data-catid")); });
+    grid.appendChild(btn);
+  });
+}
+
+// ── Show a category's career list ─────────────────────────────────────────────
+function showCategory(catId) {
+  var cat = APP_DATA.categories.find(function(c) { return c.id === catId; });
+  if (!cat) return;
+
+  document.getElementById("list-header").innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:' + cat.bg + ';border-radius:16px;margin-bottom:4px">' +
+    '<span style="font-size:36px">' + cat.emoji + '</span>' +
+    '<div><div style="font-size:20px;font-weight:800;color:' + cat.color + '">' + cat.name + '</div>' +
+    '<div style="font-size:13px;color:#888">Tap any job to learn more</div></div></div>';
+
+  var grid = document.getElementById("list-grid");
+  grid.innerHTML = "";
+  APP_DATA.careers.filter(function(c) { return c.cat === catId; }).forEach(function(job) {
+    var btn = document.createElement("button");
+    btn.className = "btn";
+    btn.style.cssText = "background:#fff;border:1px solid #E8E8E4;border-radius:14px;padding:16px;text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;margin-bottom:8px";
+    btn.innerHTML = '<span style="font-size:32px;flex-shrink:0">' + job.emoji + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<span style="font-size:15px;font-weight:700;color:#1A1A1A">' + job.name + '</span>' +
+      (job.future ? '<span style="font-size:10px;font-weight:700;background:#FFD93D;color:#664400;padding:2px 7px;border-radius:99px">FUTURE JOB</span>' : "") +
+      '</div><div style="font-size:13px;color:#888;margin-top:3px">' + job.short + '</div></div>';
+    btn.setAttribute("data-jobid", job.id);
+    btn.addEventListener("click", function() { showDetail(this.getAttribute("data-jobid")); });
+    grid.appendChild(btn);
+  });
+
+  document.getElementById("list-back").onclick = function() { show("categories"); };
+  document.getElementById("detail-back").onclick = function() { show("list"); };
+  show("list");
+}
+
+// ── Show career detail ─────────────────────────────────────────────────────────
+function showDetail(jobId) {
+  var job = APP_DATA.careers.find(function(j) { return j.id === jobId; });
+  if (!job) return;
+  var cat = APP_DATA.categories.find(function(c) { return c.id === job.cat; });
+  if (!cat) return;
+
+  var richSections = "";
+
+  // Typical day section
+  if (job.typicalDay) {
+    richSections += '<div style="background:#F8F8F6;border-radius:14px;padding:16px 18px;margin-bottom:12px">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:8px">A Typical Day</div>' +
+      '<p style="font-size:14px;color:#1A1A1A;line-height:1.6">' + job.typicalDay + '</p></div>';
+  }
+
+  // Skills section
+  if (job.skills && job.skills.length) {
+    richSections += '<div style="background:#F8F8F6;border-radius:14px;padding:16px 18px;margin-bottom:12px">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:10px">Skills You Need</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+      job.skills.map(function(s) {
+        return '<span style="background:' + cat.bg + ';color:' + cat.color + ';border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600">' + s + '</span>';
+      }).join("") + '</div></div>';
+  }
+
+  // Fun fact section
+  if (job.funFact) {
+    richSections += '<div style="background:#FFD93D22;border:1px solid #FFD93D55;border-radius:14px;padding:16px 18px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start">' +
+      '<span style="font-size:24px;flex-shrink:0">💡</span>' +
+      '<div><div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#886600;margin-bottom:6px">Fun Fact</div>' +
+      '<p style="font-size:14px;color:#1A1A1A;line-height:1.6">' + job.funFact + '</p></div></div>';
+  }
+
+  document.getElementById("detail-content").innerHTML =
+    '<div style="background:' + cat.bg + ';border-radius:20px;padding:24px;text-align:center;margin-bottom:16px">' +
+    '<div style="font-size:64px;margin-bottom:12px">' + job.emoji + '</div>' +
+    (job.future ? '<div style="background:#FFD93D;color:#664400;display:inline-block;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:700;margin-bottom:10px">FUTURE JOB - Growing Fast!</div>' : "") +
+    '<h2 style="font-size:24px;font-weight:900;color:' + cat.color + ';margin-bottom:8px">' + job.name + '</h2>' +
+    '<p style="font-size:15px;color:' + cat.color + ';opacity:0.85;line-height:1.6">' + job.detail + '</p></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">' +
+    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Category</div>' +
+    '<div style="font-size:13px;font-weight:700">' + cat.emoji + " " + cat.name + '</div></div>' +
+    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Avg Salary</div>' +
+    '<div style="font-size:13px;font-weight:700">' + (job.wage || "Varies") + '</div></div>' +
+    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Education</div>' +
+    '<div style="font-size:12px;font-weight:700">' + (job.education || "Varies") + '</div></div></div>' +
+    richSections +
+    '<button class="btn" id="detail-explore-more" style="width:100%;background:#1A1A1A;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:700;margin-top:4px">Explore More Jobs</button>';
+
+  document.getElementById("detail-explore-more").addEventListener("click", function() { show("categories"); });
+  show("detail");
+}
+
+// ── Build quiz screens ────────────────────────────────────────────────────────
+function buildQuiz() {
+  var bars = ["", "one", "two", "three"];
+  APP_DATA.quiz.forEach(function(q, idx) {
+    var screenId = "screen-q" + (idx + 1);
+    var screen = document.getElementById(screenId);
+    if (!screen) return;
+    screen.style.cssText = "padding:32px 24px;max-width:520px;margin:0 auto";
+
+    var progress = "";
+    for (var i = 0; i < 3; i++) {
+      progress += '<div style="height:6px;flex:1;background:' + (i <= idx ? "#FF6B6B" : "#E8E8E4") + ';border-radius:99px"></div>';
+    }
+
+    var answers = "";
+    q.answers.forEach(function(ans) {
+      answers += '<button class="btn quiz-ans" data-cat="' + ans.cat + '" data-qidx="' + idx + '"' +
+        ' style="background:' + (ans.bg || "#F8F8F6") + ';border:2px solid transparent;border-radius:16px;padding:14px 18px;text-align:left;font-size:16px;font-weight:600;color:#1A1A1A;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px">' +
+        '<span style="font-size:24px">' + (ans.emoji || "") + '</span>' + ans.text + '</button>';
+    });
+
+    screen.innerHTML =
+      '<div style="display:flex;gap:6px;margin-bottom:28px">' + progress + '</div>' +
+      '<div style="font-size:48px;margin-bottom:12px">' + (q.emoji || "❓") + '</div>' +
+      '<h2 style="font-size:24px;font-weight:800;color:#1A1A1A;margin-bottom:6px">' + q.question + '</h2>' +
+      '<p style="color:#888;font-size:14px;margin-bottom:24px">' + (q.hint || "Pick your favourite!") + '</p>' +
+      '<div id="answers-' + idx + '">' + answers + '</div>' +
+      (idx === 0 ? '<button class="back-btn" id="quiz-back-' + idx + '" style="margin-top:16px">Back to Home</button>' : "");
+
+    screen.querySelectorAll(".quiz-ans").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var cat = this.getAttribute("data-cat");
+        var qidx = parseInt(this.getAttribute("data-qidx"), 10);
+        quizAnswers[qidx] = cat;
+        if (qidx < APP_DATA.quiz.length - 1) {
+          show("q" + (qidx + 2));
+        } else {
+          showResult();
+        }
+      });
+    });
+
+    var backBtn = screen.querySelector("#quiz-back-" + idx);
+    if (backBtn) backBtn.addEventListener("click", function() { show("home"); });
+  });
+}
+
+// ── Show quiz result ──────────────────────────────────────────────────────────
+function showResult() {
+  var scores = {};
+  quizAnswers.forEach(function(cat) {
+    if (cat) scores[cat] = (scores[cat] || 0) + 1;
+  });
+  var winner = Object.keys(scores).reduce(function(a, b) { return scores[a] >= scores[b] ? a : b; }, Object.keys(scores)[0]);
+  var cat = APP_DATA.categories.find(function(c) { return c.id === winner; });
+  if (!cat) cat = APP_DATA.categories[0];
+
+  var topJobs = APP_DATA.careers.filter(function(j) { return j.cat === winner; }).slice(0, 3);
+
+  document.getElementById("result-hero").style.background = cat.bg;
+  document.getElementById("result-emoji").textContent = cat.emoji;
+  document.getElementById("result-title").textContent = APP_DATA.result_screen.title_prefix + " " + cat.name + "!";
+  document.getElementById("result-title").style.color = cat.color;
+  document.getElementById("result-desc").textContent = cat.desc;
+  document.getElementById("result-desc").style.color = cat.color;
+  document.getElementById("result-jobs-title").textContent = APP_DATA.result_screen.jobs_title || "Jobs you might love:";
+
+  var rjobs = document.getElementById("result-jobs");
+  rjobs.innerHTML = "";
+  topJobs.forEach(function(job) {
+    var btn = document.createElement("button");
+    btn.className = "btn";
+    btn.style.cssText = "background:#fff;border:1px solid #E8E8E4;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;width:100%;text-align:left;cursor:pointer;transition:border-color 0.1s";
+    btn.innerHTML = '<span style="font-size:28px;flex-shrink:0">' + job.emoji + '</span>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;color:#1A1A1A">' + job.name + '</div>' +
+      '<div style="font-size:12px;color:#888;margin-top:2px">' + job.short + '</div></div>' +
+      '<span style="font-size:12px;color:#A0A0A0;flex-shrink:0">→</span>';
+    btn.setAttribute("data-jobid", job.id);
+    btn.addEventListener("mouseenter", function() { this.style.borderColor = "#1A1A1A"; });
+    btn.addEventListener("mouseleave", function() { this.style.borderColor = "#E8E8E4"; });
+    btn.addEventListener("click", function() {
+      document.getElementById("detail-back").onclick = function() { show("result"); };
+      showDetail(this.getAttribute("data-jobid"));
+    });
+    rjobs.appendChild(btn);
+  });
+
+  document.getElementById("btn-retry").textContent = APP_DATA.result_screen.retry_button || "Try Again";
+  document.getElementById("btn-retry").addEventListener("click", function() { quizAnswers = []; show("q1"); });
+  document.getElementById("btn-explore-result").textContent = APP_DATA.result_screen.explore_button || "Explore All";
+  document.getElementById("btn-explore-result").addEventListener("click", function() { show("categories"); });
+
+  show("result");
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildHome();
+buildCategories();
+buildQuiz();
+show("home");
+</script>
+</body>
+</html>
