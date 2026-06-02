@@ -3,320 +3,266 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Flashcard Decks</title>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<title>Flash Card App</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Geist",sans-serif;background:#FEF9F0;min-height:100vh}
+body{font-family:"Geist",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+:root{
+  --primary:#7C3AED;
+  --accent:#EC4899;
+  --bg:#F8FAFF;
+  --surface:#FFFFFF;
+  --text:#1A1A2E;
+  --text2:#6B7280;
+  --text3:#9CA3AF;
+  --border:#E5E7EB;
+  --radius:16px;
+}
 .hidden{display:none!important}
-.btn{border:none;cursor:pointer;font-family:inherit;transition:transform 0.1s}
-.btn:active{transform:scale(0.97)}
-.back-btn{background:none;border:none;color:#888;font-size:15px;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:6px;font-family:inherit;margin-bottom:16px}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.btn{border:none;cursor:pointer;font-family:inherit;transition:transform 0.12s,opacity 0.12s}
+.btn:active{transform:scale(0.96)}
+.back-btn{background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:20px}
+
+/* Card flip */
+.card-scene{perspective:1000px;width:100%;max-width:480px;margin:0 auto;cursor:pointer}
+.card-3d{width:100%;min-height:220px;position:relative;transform-style:preserve-3d;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
+.card-3d.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;text-align:center}
+.card-front{background:var(--primary);color:#fff}
+.card-back{background:var(--surface);border:2px solid var(--primary);transform:rotateY(180deg)}
+.card-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0.6;margin-bottom:12px}
+.card-text{font-size:26px;font-weight:700;letter-spacing:-0.02em;line-height:1.3}
+.card-hint{font-size:13px;opacity:0.7;margin-top:10px;font-style:italic}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.3s ease-out}
 </style>
 </head>
 <body>
 
 <!-- HOME -->
-<div id="screen-home" style="min-height:100vh;background:linear-gradient(160deg,#FF6B6B 0%,#FF8E53 40%,#FFD93D 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
-  <div style="font-size:80px;margin-bottom:16px;animation:bounce 2s infinite" id="home-emoji">🌟</div>
-  <h1 id="home-title" style="color:#fff;font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:12px;text-shadow:0 2px 12px rgba(0,0,0,0.15)"></h1>
-  <p id="home-subtitle" style="color:rgba(255,255,255,0.92);font-size:18px;margin-bottom:40px;max-width:360px;line-height:1.5"></p>
-  <div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px">
-    <button class="btn" id="btn-quiz" style="background:#fff;color:#FF6B6B;border:none;border-radius:99px;padding:18px 44px;font-size:20px;font-weight:800;box-shadow:0 8px 32px rgba(0,0,0,0.15)"></button>
-    <button class="btn" id="btn-explore" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid rgba(255,255,255,0.7);border-radius:99px;padding:16px 44px;font-size:17px;font-weight:700"></button>
+<div id="screen-home">
+  <!-- Header -->
+  <div style="background:var(--primary);padding:40px 24px 32px;text-align:center">
+    <div id="home-emoji" style="font-size:56px;margin-bottom:12px"></div>
+    <h1 id="home-title" style="color:#fff;font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px"></h1>
+    <p id="home-subtitle" style="color:rgba(255,255,255,0.8);font-size:15px"></p>
+  </div>
+
+  <!-- Deck grid -->
+  <div style="padding:24px;max-width:640px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 style="font-size:17px;font-weight:700;color:var(--text)">Your Decks</h2>
+      <span id="deck-count" style="font-size:13px;color:var(--text3)"></span>
+    </div>
+    <div id="deck-grid" style="display:flex;flex-direction:column;gap:12px"></div>
   </div>
 </div>
 
-<!-- CATEGORIES -->
-<div id="screen-categories" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
-  <h2 id="cat-title" style="font-size:24px;font-weight:800;color:#1A1A1A;margin-bottom:6px"></h2>
-  <p id="cat-subtitle" style="color:#888;margin-bottom:20px"></p>
-  <div id="cat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
-  <button class="back-btn" id="cat-back" style="margin-top:20px">← Back</button>
+<!-- DECK VIEW -->
+<div id="screen-deck" class="hidden" style="padding:24px;max-width:640px;margin:0 auto">
+  <button class="back-btn" id="deck-back">← All Decks</button>
+  <div id="deck-header" style="margin-bottom:24px"></div>
+  <div id="card-list" style="display:flex;flex-direction:column;gap:10px"></div>
 </div>
 
-<!-- CAREER LIST -->
-<div id="screen-list" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
-  <button class="back-btn" id="list-back">← All Categories</button>
-  <div id="list-header" style="margin-bottom:20px"></div>
-  <div id="list-grid"></div>
-</div>
+<!-- STUDY MODE -->
+<div id="screen-study" class="hidden" style="padding:24px;max-width:520px;margin:0 auto">
+  <button class="back-btn" id="study-back">← Back to Deck</button>
 
-<!-- CAREER DETAIL -->
-<div id="screen-detail" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
-  <button class="back-btn" id="detail-back">← Back</button>
-  <div id="detail-content"></div>
-</div>
-
-<!-- QUIZ SCREENS (rendered dynamically) -->
-<div id="screen-q1" class="hidden"></div>
-<div id="screen-q2" class="hidden"></div>
-<div id="screen-q3" class="hidden"></div>
-
-<!-- RESULT -->
-<div id="screen-result" class="hidden" style="padding:24px;max-width:520px;margin:0 auto">
-  <div id="result-hero" style="border-radius:24px;padding:28px;text-align:center;margin-bottom:20px">
-    <div id="result-emoji" style="font-size:64px;margin-bottom:12px"></div>
-    <h2 id="result-title" style="font-size:26px;font-weight:900;margin-bottom:10px"></h2>
-    <p id="result-desc" style="font-size:15px;line-height:1.6;opacity:0.9"></p>
+  <!-- Progress -->
+  <div style="margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span id="study-progress-text" style="font-size:13px;font-weight:600;color:var(--text2)"></span>
+      <span id="study-score" style="font-size:13px;font-weight:600;color:var(--primary)"></span>
+    </div>
+    <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+      <div id="study-progress-bar" style="height:100%;background:var(--primary);border-radius:99px;transition:width 0.4s"></div>
+    </div>
   </div>
-  <h3 id="result-jobs-title" style="font-size:16px;font-weight:800;color:#1A1A1A;margin-bottom:12px"></h3>
-  <div id="result-jobs" style="margin-bottom:24px"></div>
-  <div style="display:flex;gap:10px;margin-bottom:20px">
-    <button class="btn" id="btn-retry" style="flex:1;background:#1A1A1A;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:700"></button>
-    <button class="btn" id="btn-explore-result" style="flex:1;background:#F0E8FF;color:#6600BB;border-radius:14px;padding:14px;font-size:15px;font-weight:700"></button>
+
+  <!-- Flip card -->
+  <div class="card-scene" id="card-scene" onclick="flipCard()">
+    <div class="card-3d" id="card-3d">
+      <div class="card-face card-front">
+        <div class="card-label">Tap to reveal</div>
+        <div class="card-text" id="card-front-text"></div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-label">Answer</div>
+        <div class="card-text" id="card-back-text"></div>
+        <div class="card-hint" id="card-hint-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-size:13px;color:var(--text3);margin:14px 0 20px">Tap the card to flip it</p>
+
+  <!-- Answer buttons (shown after flip) -->
+  <div id="answer-btns" class="hidden" style="display:flex;gap:10px">
+    <button class="btn" onclick="markCard(false)" style="flex:1;padding:14px;border-radius:12px;background:#FEF2F2;border:2px solid #FECACA;color:#DC2626;font-size:14px;font-weight:600">Try Again</button>
+    <button class="btn" onclick="markCard(true)"  style="flex:1;padding:14px;border-radius:12px;background:#F0FDF4;border:2px solid #BBF7D0;color:#16A34A;font-size:14px;font-weight:600">Got It ✓</button>
   </div>
 </div>
 
-<!-- ATTRIBUTION FOOTER -->
-<div style="text-align:center;padding:24px 24px 32px;border-top:1px solid #E8E8E4;margin-top:8px">
-  <p style="font-size:12px;color:#A0A0A0;margin:0 0 4px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">About Our Data</p>
-  <p style="font-size:12px;color:#A0A0A0;margin:0;line-height:1.6">Job information sourced from <strong style="color:#6B6B6B">O*NET Web Services</strong> by the U.S. Department of Labor and <strong style="color:#6B6B6B">BLS Occupational Outlook Handbook</strong> 2024–2034 projections. Salary figures are median annual wages.</p>
+<!-- COMPLETE -->
+<div id="screen-complete" class="hidden" style="padding:40px 24px;max-width:480px;margin:0 auto;text-align:center">
+  <div style="font-size:72px;margin-bottom:16px">🎉</div>
+  <h2 id="complete-title" style="font-size:28px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;color:var(--text)"></h2>
+  <p id="complete-score" style="font-size:18px;color:var(--primary);font-weight:700;margin-bottom:8px"></p>
+  <p id="complete-sub" style="font-size:15px;color:var(--text2);margin-bottom:32px"></p>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn" id="btn-study-again" style="padding:14px;border-radius:12px;background:var(--primary);color:#fff;font-size:15px;font-weight:700">Study Again</button>
+    <button class="btn" id="btn-back-decks"  style="padding:14px;border-radius:12px;background:var(--border);color:var(--text);font-size:15px;font-weight:600">Back to Decks</button>
+  </div>
 </div>
 
 <script>
-// ── App data injected by build system ────────────────────────────────────────
-var APP_DATA = {"home":{"emoji":"🃏","title":"Your Flashcard Decks","subtitle":"Study smarter, one card at a time. Tap a deck to start or create a new one!","quiz_button":"Create New Deck ➕","explore_button":"Browse All Decks 📚"},"categories_screen":{"title":"Your Decks","subtitle":"Tap any deck to study or long-press to delete"},"result_screen":{"title_prefix":"Session Complete!","jobs_title":"Your results:","retry_button":"Retry Missed Cards 🔄","explore_button":"Return Home 🏠"},"categories":[{"id":"sample_deck","name":"Sample Deck","emoji":"🌟","color":"#E07B00","bg":"#FFF3E8","desc":"A pre-loaded deck to get you started with flashcard studying!","tagline":"Start studying here"},{"id":"math","name":"Math Basics","emoji":"➗","color":"#0066CC","bg":"#E8F4FF","desc":"Practice fundamental math facts and formulas!","tagline":"Numbers and equations"},{"id":"science","name":"Science Terms","emoji":"🔬","color":"#CC0066","bg":"#FFF0F8","desc":"Master key science vocabulary and concepts!","tagline":"Explore and discover"},{"id":"history","name":"World History","emoji":"🏛️","color":"#00882B","bg":"#E8FFF0","desc":"Remember important dates, events, and people from history!","tagline":"Events and people"},{"id":"languages","name":"Language Learning","emoji":"🗣️","color":"#886600","bg":"#FFFBE8","desc":"Practice vocabulary and phrases in a new language!","tagline":"Words and phrases"},{"id":"custom","name":"My Custom Deck","emoji":"✏️","color":"#6600BB","bg":"#F0E8FF","desc":"Create your own deck with any cards you want to study!","tagline":"Your own content"}],"careers":[{"id":"card_001","cat":"sample_deck","emoji":"🌍","name":"What is the capital of France?","short":"A geography question to test your knowledge!","detail":"Paris is the capital and most populous city of France. It has been the country capital for centuries and is known as the City of Light.","typicalDay":"Front: What is the capital of France? | Back: Paris","skills":["Recall","Geography","Memorization"],"funFact":"Paris has been the capital of France since the late 10th century!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_002","cat":"sample_deck","emoji":"🧮","name":"What is 12 multiplied by 12?","short":"A classic multiplication question!","detail":"12 times 12 equals 144. Knowing your times tables up to 12 is a foundational math skill.","typicalDay":"Front: What is 12 x 12? | Back: 144","skills":["Arithmetic","Mental math","Memorization"],"funFact":"144 is also called a gross — a dozen dozens!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_003","cat":"sample_deck","emoji":"🔬","name":"What is the chemical symbol for water?","short":"A fundamental chemistry question!","detail":"The chemical symbol for water is H2O, meaning two hydrogen atoms bonded to one oxygen atom.","typicalDay":"Front: What is the chemical symbol for water? | Back: H2O","skills":["Chemistry","Science vocabulary","Recall"],"funFact":"About 60 percent of the human body is made of water!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_004","cat":"sample_deck","emoji":"📖","name":"Who wrote Romeo and Juliet?","short":"A classic literature question!","detail":"Romeo and Juliet was written by William Shakespeare, likely between 1594 and 1596. It is one of the most famous plays ever written.","typicalDay":"Front: Who wrote Romeo and Juliet? | Back: William Shakespeare","skills":["Literature","History","Recall"],"funFact":"Shakespeare wrote 37 plays and 154 sonnets during his lifetime!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_005","cat":"sample_deck","emoji":"🚀","name":"What planet is closest to the Sun?","short":"A solar system question!","detail":"Mercury is the closest planet to the Sun in our solar system. Despite being closest, it is not the hottest planet — that is Venus.","typicalDay":"Front: What planet is closest to the Sun? | Back: Mercury","skills":["Astronomy","Science","Recall"],"funFact":"A year on Mercury lasts only 88 Earth days!","education":"Sample Card","future":false,"wage":"Flip to reveal"},{"id":"card_006","cat":"math","emoji":"📐","name":"What is the value of Pi to two decimal places?","short":"A key math constant to memorize!","detail":"Pi rounded to two decimal places is 3.14. It represents the ratio of a circle circumference to its diameter.","typicalDay":"Front: What is Pi to 2 decimal places? | Back: 3.14","skills":["Math constants","Geometry","Memorization"],"funFact":"Pi has been calculated to over 100 trillion decimal places and never repeats!","education":"Math Deck","future":false,"wage":"Flip to reveal"},{"id":"card_007","cat":"science","emoji":"⚡","name":"What is the powerhouse of the cell?","short":"A classic biology question!","detail":"The mitochondria is the powerhouse of the cell. It generates most of the cell energy through a process called cellular respiration.","typicalDay":"Front: What is the powerhouse of the cell? | Back: The mitochondria","skills":["Biology","Cell science","Recall"],"funFact":"Mitochondria have their own DNA, separate from the rest of the cell!","education":"Science Deck","future":false,"wage":"Flip to reveal"},{"id":"card_008","cat":"history","emoji":"🗽","name":"In what year did World War II end?","short":"An important historical date!","detail":"World War II ended in 1945. The war in Europe ended in May and the war in the Pacific ended in September of that year.","typicalDay":"Front: In what year did World War II end? | Back: 1945","skills":["History","Dates","Recall"],"funFact":"World War II involved more than 30 countries and over 100 million military personnel!","education":"History Deck","future":false,"wage":"Flip to reveal"},{"id":"card_009","cat":"languages","emoji":"🇪🇸","name":"How do you say hello in Spanish?","short":"A basic Spanish vocabulary card!","detail":"Hello in Spanish is Hola. It is one of the most recognized words in the Spanish language and used across all Spanish-speaking countries.","typicalDay":"Front: How do you say hello in Spanish? | Back: Hola","skills":["Spanish vocabulary","Language learning","Recall"],"funFact":"Spanish is spoken by over 500 million people worldwide as a native language!","education":"Language Deck","future":false,"wage":"Flip to reveal"},{"id":"card_010","cat":"custom","emoji":"✏️","name":"Your first custom card","short":"Add your own question and answer here!","detail":"This is a placeholder for your own custom flashcard. Edit the front and back text to study anything you want.","typicalDay":"Front: Your question here | Back: Your answer here","skills":["Custom content","Personal study","Any topic"],"funFact":"You can create unlimited cards on any topic you want to study!","education":"Custom Deck","future":false,"wage":"Flip to reveal"}],"quiz":[{"emoji":"📝","question":"Name your new deck","hint":"Type a name for your flashcard deck","answers":[{"cat":"math","emoji":"➗","text":"Math Basics","bg":"#FFF3E8"},{"cat":"science","emoji":"🔬","text":"Science Terms","bg":"#E8F4FF"},{"cat":"history","emoji":"🏛️","text":"World History","bg":"#FFF0F8"},{"cat":"languages","emoji":"🗣️","text":"Language Learning","bg":"#E8FFF0"},{"cat":"custom","emoji":"✏️","text":"My Custom Deck","bg":"#FFFBE8"},{"cat":"sample_deck","emoji":"🌟","text":"Sample Deck","bg":"#F0E8FF"}]},{"emoji":"➕","question":"Add a card to your deck","hint":"Enter the front and back text for your flashcard","answers":[{"cat":"front","emoji":"❓","text":"Front: Question or term","bg":"#FFF3E8"},{"cat":"back","emoji":"💡","text":"Back: Answer or definition","bg":"#E8F4FF"},{"cat":"add","emoji":"✅","text":"Add Card","bg":"#FFF0F8"},{"cat":"addmore","emoji":"➕","text":"Add Another Card","bg":"#E8FFF0"},{"cat":"done","emoji":"🎉","text":"Done — Save Deck","bg":"#FFFBE8"},{"cat":"cancel","emoji":"❌","text":"Cancel and Discard","bg":"#F0E8FF"}]},{"emoji":"🃏","question":"Study mode — tap the card to flip it!","hint":"Then mark whether you got it or missed it","answers":[{"cat":"gotit","emoji":"✅","text":"Got It","bg":"#E8FFF0"},{"cat":"missedit","emoji":"❌","text":"Missed It","bg":"#FFF0F8"},{"cat":"flip","emoji":"🔄","text":"Tap card to flip","bg":"#E8F4FF"},{"cat":"progress","emoji":"📊","text":"View progress so far","bg":"#FFF3E8"},{"cat":"quit","emoji":"🏠","text":"Quit session and return home","bg":"#FFFBE8"},{"cat":"next","emoji":"➡️","text":"Next Card","bg":"#F0E8FF"}]}]};
+var APP_DATA = {"app":{"title":"Flash Card App","subtitle":"Master anything with smart, spaced repetition flashcards","emoji":"🃏","primary":"#7C3AED","accent":"#EC4899"},"decks":[{"id":"deck1","title":"Biology 101 — Cell Biology","description":"Core cell biology concepts for high school and intro college bio","emoji":"🔬","cards":[{"front":"What is the powerhouse of the cell?","back":"The mitochondrion. It produces ATP through cellular respiration, converting glucose and oxygen into usable energy.","hint":"Think energy currency of the cell"},{"front":"What is the function of the Golgi apparatus?","back":"It processes, packages, and ships proteins and lipids to their final destinations inside or outside the cell.","hint":"Think of it as the postal service of the cell"},{"front":"Difference between prokaryotic and eukaryotic cells?","back":"Prokaryotic cells have no membrane-bound nucleus (e.g. bacteria). Eukaryotic cells have a true nucleus and organelles (e.g. plant, animal cells).","hint":"Pro = before nucleus, Eu = true nucleus"},{"front":"What does the endoplasmic reticulum do?","back":"Rough ER synthesizes and processes proteins. Smooth ER synthesizes lipids and detoxifies chemicals.","hint":"Rough has ribosomes attached, smooth does not"},{"front":"What is osmosis?","back":"The passive movement of water molecules across a semi-permeable membrane from an area of low solute concentration to high solute concentration.","hint":"Water moves toward where there is more dissolved stuff"},{"front":"Define mitosis","back":"A type of cell division resulting in two daughter cells with the same number of chromosomes as the parent cell. Used for growth and repair.","hint":"PMAT: Prophase, Metaphase, Anaphase, Telophase"},{"front":"What is the role of ribosomes?","back":"Ribosomes are the site of protein synthesis. They translate mRNA sequences into amino acid chains (polypeptides).","hint":"Found free in cytoplasm or attached to rough ER"},{"front":"What is active transport?","back":"The movement of molecules across a membrane against their concentration gradient, requiring energy (ATP) and carrier proteins.","hint":"Against the gradient = needs energy"}]},{"id":"deck2","title":"Spanish Vocabulary — Everyday Essentials","description":"High-frequency Spanish words and phrases for beginners and intermediates","emoji":"🇪🇸","cards":[{"front":"¿Cómo te llamas?","back":"What is your name? — Used as an informal introduction question in Spanish.","hint":"Literally: How do you call yourself?"},{"front":"querer","back":"To want / To love — Context determines meaning. Quiero agua = I want water. Te quiero = I love you (informal).","hint":"One of the most common verbs — memorize both meanings"},{"front":"¿Cuánto cuesta?","back":"How much does it cost? — Essential phrase for shopping or any transaction.","hint":"Cuesta comes from costar (to cost)"},{"front":"tener que + infinitive","back":"To have to do something. Example: Tengo que estudiar = I have to study.","hint":"Express obligation — use it constantly"},{"front":"ser vs. estar","back":"Both mean 'to be'. Ser = permanent traits (identity, origin, profession). Estar = temporary states (mood, location, condition).","hint":"DOCTOR (ser) vs. PLACE (estar) memory tricks"},{"front":"hace + time + que","back":"Expresses how long something has been happening. Example: Hace dos horas que espero = I have been waiting for two hours.","hint":"No need for present perfect — use hace instead"},{"front":"¿Me puede ayudar?","back":"Can you help me? — Polite request using the formal usted form. Very useful in real-world situations.","hint":"Swap puede for puedes for informal situations"},{"front":"aunque","back":"Although / Even though / Even if — A versatile connector used with both indicative and subjunctive moods.","hint":"Sounds like 'awn-keh' — link contrasting ideas"},{"front":"a menos que","back":"Unless — Always followed by subjunctive. Example: A menos que llueva, vamos al parque.","hint":"Triggers subjunctive — important for advanced grammar"}]},{"id":"deck3","title":"Pre-Law — Constitutional Law Basics","description":"Key Supreme Court cases and constitutional principles for pre-law and poly sci students","emoji":"⚖️","cards":[{"front":"Marbury v. Madison (1803)","back":"Established the principle of judicial review — the Supreme Court has the power to strike down laws that violate the Constitution.","hint":"Foundation of the entire judicial branch power structure"},{"front":"What is the Due Process Clause?","back":"Found in the 5th and 14th Amendments. It guarantees that no person shall be deprived of life, liberty, or property without due process of law.","hint":"5th = federal government, 14th = state governments"},{"front":"Brown v. Board of Education (1954)","back":"Unanimously ruled that racial segregation in public schools was unconstitutional, overturning the 'separate but equal' doctrine from Plessy v. Ferguson.","hint":"Thurgood Marshall argued the case for the NAACP"},{"front":"What is the Equal Protection Clause?","back":"Part of the 14th Amendment. It prohibits states from denying any person within its jurisdiction equal protection under the law.","hint":"Basis for many civil rights and discrimination cases"},{"front":"Miranda v. Arizona (1966)","back":"Required that suspects in police custody be informed of their rights — including the right to remain silent and the right to an attorney — before interrogation.","hint":"This is where Miranda rights come from"},{"front":"What is strict scrutiny?","back":"The highest standard of judicial review. Applied to laws affecting fundamental rights or suspect classifications (e.g. race). The law must serve a compelling government interest.","hint":"Three tiers: rational basis, intermediate, strict scrutiny"},{"front":"Roe v. Wade (1973) — overturned context","back":"Originally established a constitutional right to abortion under the right to privacy. Overturned in Dobbs v. Jackson (2022), returning abortion regulation to individual states.","hint":"Know both the original ruling and the 2022 reversal"},{"front":"What is habeas corpus?","back":"A legal order requiring that a person detained by the government be brought before a court to determine if the detention is lawful. Protects against unlawful imprisonment.","hint":"Latin for 'you shall have the body'"}]},{"id":"deck4","title":"Human Anatomy — Major Organ Systems","description":"Essential anatomy facts for pre-med, nursing, and health science students","emoji":"🫀","cards":[{"front":"What are the four chambers of the heart?","back":"Right atrium, right ventricle, left atrium, left ventricle. The right side pumps deoxygenated blood to the lungs; the left pumps oxygenated blood to the body.","hint":"Atria receive blood, ventricles pump blood out"},{"front":"Function of the hypothalamus","back":"The hypothalamus regulates body temperature, hunger, thirst, sleep, and hormone release. It links the nervous system to the endocrine system via the pituitary gland.","hint":"Think of it as the brain control center for homeostasis"},{"front":"What does the liver do?","back":"The liver detoxifies blood, produces bile for digestion, metabolizes nutrients, synthesizes proteins (including clotting factors), and stores glycogen.","hint":"Over 500 functions — most metabolically active organ"},{"front":"Difference between tendons and ligaments","back":"Tendons connect muscle to bone. Ligaments connect bone to bone. Both are made of dense connective tissue but serve different structural roles.","hint":"Tendon = muscle to bone (T for Tendon, T for The muscle)"},{"front":"What is the function of the lymphatic system?","back":"It returns excess interstitial fluid to the bloodstream, absorbs dietary fats from the gut, and plays a central role in immune defense by carrying lymphocytes.","hint":"Lymph nodes filter lymph fluid — swell during infection"},{"front":"Where does gas exchange occur in the lungs?","back":"In the alveoli — tiny air sacs surrounded by capillaries. Oxygen diffuses into the blood and carbon dioxide diffuses out across the thin alveolar walls.","hint":"Alveoli maximize surface area for diffusion"},{"front":"What is the role of the nephron?","back":"The nephron is the functional unit of the kidney. It filters blood, reabsorbs water and nutrients, and secretes waste products to produce urine.","hint":"Each kidney contains about 1 million nephrons"},{"front":"Name the three types of muscle tissue","back":"Skeletal muscle (voluntary, striated), smooth muscle (involuntary, found in organs), and cardiac muscle (involuntary, striated, found only in the heart).","hint":"Only cardiac muscle has intercalated discs"}]},{"id":"deck5","title":"Study Skills — Spaced Repetition and Memory Science","description":"Evidence-based study techniques every student should know to study smarter","emoji":"🧠","cards":[{"front":"What is spaced repetition?","back":"A learning technique where you review information at increasing intervals over time. Reviewing just before you forget maximizes long-term retention with minimal time.","hint":"The Flash Card App uses the FSRS algorithm for this"},{"front":"What is the FSRS algorithm?","back":"Free Spaced Repetition Scheduler — a modern, open-source algorithm that predicts the optimal time to review each card based on your individual memory performance.","hint":"More accurate than older SM-2 algorithm used by Anki"},{"front":"What is active recall?","back":"A study technique where you actively retrieve information from memory rather than passively re-reading it. Testing yourself is far more effective than highlighting.","hint":"Flashcards are the classic active recall tool"},{"front":"What is the forgetting curve?","back":"Described by Hermann Ebbinghaus — memory decays exponentially after learning. Without review, you forget roughly 70% of new information within 24 hours.","hint":"Spaced repetition directly counters the forgetting curve"},{"front":"What is interleaving?","back":"Mixing different topics or problem types within a single study session rather than blocking one subject at a time. Harder but produces better long-term retention.","hint":"Feels less efficient but improves actual test performance"},{"front":"What is the testing effect?","back":"Also called retrieval practice — the finding that taking tests on material significantly improves retention compared to re-studying the same material.","hint":"Backed by decades of cognitive psychology research"},{"front":"What does the FSRS stability score mean?","back":"Stability (S) in FSRS represents how long it takes for your recall probability to drop to 90%. Higher stability = longer until your next review is needed.","hint":"Each successful recall increases stability exponentially"},{"front":"What is the optimal review load per day?","back":"Research suggests 20–50 new cards per day with spaced repetition reviews is sustainable for most students. Quality of encoding during first learning matters most.","hint":"Consistency over days beats cramming in one session"}]}]};
 
-// ── Screen router ─────────────────────────────────────────────────────────────
-var SCREENS = ["home","categories","list","detail","q1","q2","q3","result"];
+// Apply theme
+document.documentElement.style.setProperty("--primary", APP_DATA.app.primary || "#0F766E");
+document.documentElement.style.setProperty("--accent",  APP_DATA.app.accent  || "#6366F1");
+
+// State
+var currentDeck = null;
+var currentCards = [];
+var currentIdx   = 0;
+var correct      = 0;
+var isFlipped    = false;
+
+// ── Router ────────────────────────────────────────────────────────────────────
+var SCREENS = ["home","deck","study","complete"];
 function show(name) {
   SCREENS.forEach(function(s) {
     var el = document.getElementById("screen-" + s);
     if (el) el.classList.add("hidden");
   });
-  var target = document.getElementById("screen-" + name);
-  if (target) target.classList.remove("hidden");
+  var t = document.getElementById("screen-" + name);
+  if (t) { t.classList.remove("hidden"); t.classList.add("fade-up"); }
   window.scrollTo(0, 0);
 }
 
-// ── Quiz state ────────────────────────────────────────────────────────────────
-var quizAnswers = [];
-
-// ── Build home screen ─────────────────────────────────────────────────────────
+// ── Build home ────────────────────────────────────────────────────────────────
 function buildHome() {
-  var h = APP_DATA.home;
-  if (document.getElementById("home-emoji")) document.getElementById("home-emoji").textContent = h.emoji || "🌟";
-  document.getElementById("home-title").textContent = h.title;
-  document.getElementById("home-subtitle").textContent = h.subtitle;
-  var btnQuiz = document.getElementById("btn-quiz");
-  btnQuiz.textContent = h.quiz_button || "Take the Quiz! ✨";
-  btnQuiz.addEventListener("click", function() { show("q1"); });
-  var btnExplore = document.getElementById("btn-explore");
-  btnExplore.textContent = h.explore_button || "Explore All Jobs 🗺️";
-  btnExplore.addEventListener("click", function() { show("categories"); });
-}
+  var a = APP_DATA.app;
+  document.getElementById("home-emoji").textContent   = a.emoji   || "🃏";
+  document.getElementById("home-title").textContent   = a.title   || "Flash Cards";
+  document.getElementById("home-subtitle").textContent = a.subtitle || "Flip, learn, repeat";
+  document.getElementById("deck-count").textContent   = APP_DATA.decks.length + " deck" + (APP_DATA.decks.length !== 1 ? "s" : "");
 
-// ── Build categories screen ───────────────────────────────────────────────────
-function buildCategories() {
-  document.getElementById("cat-title").textContent = APP_DATA.categories_screen.title || "Pick a Category";
-  document.getElementById("cat-subtitle").textContent = APP_DATA.categories_screen.subtitle || "Tap any to see the jobs inside";
-  document.getElementById("cat-back").addEventListener("click", function() { show("home"); });
-
-  var grid = document.getElementById("cat-grid");
-  APP_DATA.categories.forEach(function(cat) {
-    var btn = document.createElement("button");
-    btn.className = "btn";
-    btn.style.cssText = "background:" + cat.bg + ";border:none;border-radius:20px;padding:20px 16px;text-align:left;cursor:pointer;width:100%";
-    btn.innerHTML = '<div style="font-size:36px;margin-bottom:8px">' + cat.emoji + '</div>' +
-      '<div style="font-size:16px;font-weight:800;color:' + cat.color + '">' + cat.name + '</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:2px">' + (cat.tagline || "") + '</div>';
-    btn.setAttribute("data-catid", cat.id);
-    btn.addEventListener("click", function() { showCategory(this.getAttribute("data-catid")); });
-    grid.appendChild(btn);
-  });
-}
-
-// ── Show a category's career list ─────────────────────────────────────────────
-function showCategory(catId) {
-  var cat = APP_DATA.categories.find(function(c) { return c.id === catId; });
-  if (!cat) return;
-
-  document.getElementById("list-header").innerHTML =
-    '<div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:' + cat.bg + ';border-radius:16px;margin-bottom:4px">' +
-    '<span style="font-size:36px">' + cat.emoji + '</span>' +
-    '<div><div style="font-size:20px;font-weight:800;color:' + cat.color + '">' + cat.name + '</div>' +
-    '<div style="font-size:13px;color:#888">Tap any job to learn more</div></div></div>';
-
-  var grid = document.getElementById("list-grid");
-  grid.innerHTML = "";
-  APP_DATA.careers.filter(function(c) { return c.cat === catId; }).forEach(function(job) {
-    var btn = document.createElement("button");
-    btn.className = "btn";
-    btn.style.cssText = "background:#fff;border:1px solid #E8E8E4;border-radius:14px;padding:16px;text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;margin-bottom:8px";
-    btn.innerHTML = '<span style="font-size:32px;flex-shrink:0">' + job.emoji + '</span>' +
+  var grid = document.getElementById("deck-grid");
+  APP_DATA.decks.forEach(function(deck) {
+    var card = document.createElement("div");
+    card.style.cssText = "background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:box-shadow 0.15s,transform 0.15s";
+    card.innerHTML =
+      '<div style="width:52px;height:52px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + deck.emoji + '</div>' +
       '<div style="flex:1;min-width:0">' +
-      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-      '<span style="font-size:15px;font-weight:700;color:#1A1A1A">' + job.name + '</span>' +
-      (job.future ? '<span style="font-size:10px;font-weight:700;background:#FFD93D;color:#664400;padding:2px 7px;border-radius:99px">FUTURE JOB</span>' : "") +
-      '</div><div style="font-size:13px;color:#888;margin-top:3px">' + job.short + '</div></div>';
-    btn.setAttribute("data-jobid", job.id);
-    btn.addEventListener("click", function() { showDetail(this.getAttribute("data-jobid")); });
-    grid.appendChild(btn);
-  });
-
-  document.getElementById("list-back").onclick = function() { show("categories"); };
-  document.getElementById("detail-back").onclick = function() { show("list"); };
-  show("list");
-}
-
-// ── Show career detail ─────────────────────────────────────────────────────────
-function showDetail(jobId) {
-  var job = APP_DATA.careers.find(function(j) { return j.id === jobId; });
-  if (!job) return;
-  var cat = APP_DATA.categories.find(function(c) { return c.id === job.cat; });
-  if (!cat) return;
-
-  var richSections = "";
-
-  // Typical day section
-  if (job.typicalDay) {
-    richSections += '<div style="background:#F8F8F6;border-radius:14px;padding:16px 18px;margin-bottom:12px">' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:8px">A Typical Day</div>' +
-      '<p style="font-size:14px;color:#1A1A1A;line-height:1.6">' + job.typicalDay + '</p></div>';
-  }
-
-  // Skills section
-  if (job.skills && job.skills.length) {
-    richSections += '<div style="background:#F8F8F6;border-radius:14px;padding:16px 18px;margin-bottom:12px">' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:10px">Skills You Need</div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
-      job.skills.map(function(s) {
-        return '<span style="background:' + cat.bg + ';color:' + cat.color + ';border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600">' + s + '</span>';
-      }).join("") + '</div></div>';
-  }
-
-  // Fun fact section
-  if (job.funFact) {
-    richSections += '<div style="background:#FFD93D22;border:1px solid #FFD93D55;border-radius:14px;padding:16px 18px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start">' +
-      '<span style="font-size:24px;flex-shrink:0">💡</span>' +
-      '<div><div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#886600;margin-bottom:6px">Fun Fact</div>' +
-      '<p style="font-size:14px;color:#1A1A1A;line-height:1.6">' + job.funFact + '</p></div></div>';
-  }
-
-  document.getElementById("detail-content").innerHTML =
-    '<div style="background:' + cat.bg + ';border-radius:20px;padding:24px;text-align:center;margin-bottom:16px">' +
-    '<div style="font-size:64px;margin-bottom:12px">' + job.emoji + '</div>' +
-    (job.future ? '<div style="background:#FFD93D;color:#664400;display:inline-block;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:700;margin-bottom:10px">FUTURE JOB - Growing Fast!</div>' : "") +
-    '<h2 style="font-size:24px;font-weight:900;color:' + cat.color + ';margin-bottom:8px">' + job.name + '</h2>' +
-    '<p style="font-size:15px;color:' + cat.color + ';opacity:0.85;line-height:1.6">' + job.detail + '</p></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">' +
-    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
-    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Category</div>' +
-    '<div style="font-size:13px;font-weight:700">' + cat.emoji + " " + cat.name + '</div></div>' +
-    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
-    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Avg Salary</div>' +
-    '<div style="font-size:13px;font-weight:700">' + (job.wage || "Varies") + '</div></div>' +
-    '<div style="background:#F8F8F6;border-radius:12px;padding:12px;text-align:center">' +
-    '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A0A0A0;margin-bottom:4px">Education</div>' +
-    '<div style="font-size:12px;font-weight:700">' + (job.education || "Varies") + '</div></div></div>' +
-    richSections +
-    '<button class="btn" id="detail-explore-more" style="width:100%;background:#1A1A1A;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:700;margin-top:4px">Explore More Jobs</button>';
-
-  document.getElementById("detail-explore-more").addEventListener("click", function() { show("categories"); });
-  show("detail");
-}
-
-// ── Build quiz screens ────────────────────────────────────────────────────────
-function buildQuiz() {
-  var bars = ["", "one", "two", "three"];
-  APP_DATA.quiz.forEach(function(q, idx) {
-    var screenId = "screen-q" + (idx + 1);
-    var screen = document.getElementById(screenId);
-    if (!screen) return;
-    screen.style.cssText = "padding:32px 24px;max-width:520px;margin:0 auto";
-
-    var progress = "";
-    for (var i = 0; i < 3; i++) {
-      progress += '<div style="height:6px;flex:1;background:' + (i <= idx ? "#FF6B6B" : "#E8E8E4") + ';border-radius:99px"></div>';
-    }
-
-    var answers = "";
-    q.answers.forEach(function(ans) {
-      answers += '<button class="btn quiz-ans" data-cat="' + ans.cat + '" data-qidx="' + idx + '"' +
-        ' style="background:' + (ans.bg || "#F8F8F6") + ';border:2px solid transparent;border-radius:16px;padding:14px 18px;text-align:left;font-size:16px;font-weight:600;color:#1A1A1A;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px">' +
-        '<span style="font-size:24px">' + (ans.emoji || "") + '</span>' + ans.text + '</button>';
-    });
-
-    screen.innerHTML =
-      '<div style="display:flex;gap:6px;margin-bottom:28px">' + progress + '</div>' +
-      '<div style="font-size:48px;margin-bottom:12px">' + (q.emoji || "❓") + '</div>' +
-      '<h2 style="font-size:24px;font-weight:800;color:#1A1A1A;margin-bottom:6px">' + q.question + '</h2>' +
-      '<p style="color:#888;font-size:14px;margin-bottom:24px">' + (q.hint || "Pick your favourite!") + '</p>' +
-      '<div id="answers-' + idx + '">' + answers + '</div>' +
-      (idx === 0 ? '<button class="back-btn" id="quiz-back-' + idx + '" style="margin-top:16px">Back to Home</button>' : "");
-
-    screen.querySelectorAll(".quiz-ans").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        var cat = this.getAttribute("data-cat");
-        var qidx = parseInt(this.getAttribute("data-qidx"), 10);
-        quizAnswers[qidx] = cat;
-        if (qidx < APP_DATA.quiz.length - 1) {
-          show("q" + (qidx + 2));
-        } else {
-          showResult();
-        }
-      });
-    });
-
-    var backBtn = screen.querySelector("#quiz-back-" + idx);
-    if (backBtn) backBtn.addEventListener("click", function() { show("home"); });
+        '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px">' + deck.title + '</div>' +
+        '<div style="font-size:13px;color:var(--text2)">' + deck.description + '</div>' +
+        '<div style="font-size:12px;color:var(--text3);margin-top:4px">' + deck.cards.length + ' cards</div>' +
+      '</div>' +
+      '<div style="font-size:20px;color:var(--text3)">›</div>';
+    card.onmouseenter = function() { this.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; this.style.transform = "translateY(-1px)"; };
+    card.onmouseleave = function() { this.style.boxShadow = "none"; this.style.transform = "none"; };
+    card.setAttribute("data-deckid", deck.id);
+    card.addEventListener("click", function() { openDeck(this.getAttribute("data-deckid")); });
+    grid.appendChild(card);
   });
 }
 
-// ── Show quiz result ──────────────────────────────────────────────────────────
-function showResult() {
-  var scores = {};
-  quizAnswers.forEach(function(cat) {
-    if (cat) scores[cat] = (scores[cat] || 0) + 1;
-  });
-  var winner = Object.keys(scores).reduce(function(a, b) { return scores[a] >= scores[b] ? a : b; }, Object.keys(scores)[0]);
-  var cat = APP_DATA.categories.find(function(c) { return c.id === winner; });
-  if (!cat) cat = APP_DATA.categories[0];
+// ── Open deck ─────────────────────────────────────────────────────────────────
+function openDeck(deckId) {
+  currentDeck = APP_DATA.decks.find(function(d) { return d.id === deckId; });
+  if (!currentDeck) return;
 
-  var topJobs = APP_DATA.careers.filter(function(j) { return j.cat === winner; }).slice(0, 3);
+  document.getElementById("deck-header").innerHTML =
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">' +
+    '<div style="width:56px;height:56px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px">' + currentDeck.emoji + '</div>' +
+    '<div><div style="font-size:20px;font-weight:800;color:var(--text)">' + currentDeck.title + '</div>' +
+    '<div style="font-size:13px;color:var(--text2)">' + currentDeck.description + '</div></div></div>' +
+    '<button class="btn" onclick="startStudy()" style="width:100%;padding:14px;border-radius:12px;background:var(--primary);color:#fff;font-size:15px;font-weight:700">Study All ' + currentDeck.cards.length + ' Cards →</button>';
 
-  document.getElementById("result-hero").style.background = cat.bg;
-  document.getElementById("result-emoji").textContent = cat.emoji;
-  document.getElementById("result-title").textContent = APP_DATA.result_screen.title_prefix + " " + cat.name + "!";
-  document.getElementById("result-title").style.color = cat.color;
-  document.getElementById("result-desc").textContent = cat.desc;
-  document.getElementById("result-desc").style.color = cat.color;
-  document.getElementById("result-jobs-title").textContent = APP_DATA.result_screen.jobs_title || "Jobs you might love:";
-
-  var rjobs = document.getElementById("result-jobs");
-  rjobs.innerHTML = "";
-  topJobs.forEach(function(job) {
-    var btn = document.createElement("button");
-    btn.className = "btn";
-    btn.style.cssText = "background:#fff;border:1px solid #E8E8E4;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;width:100%;text-align:left;cursor:pointer;transition:border-color 0.1s";
-    btn.innerHTML = '<span style="font-size:28px;flex-shrink:0">' + job.emoji + '</span>' +
-      '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;color:#1A1A1A">' + job.name + '</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:2px">' + job.short + '</div></div>' +
-      '<span style="font-size:12px;color:#A0A0A0;flex-shrink:0">→</span>';
-    btn.setAttribute("data-jobid", job.id);
-    btn.addEventListener("mouseenter", function() { this.style.borderColor = "#1A1A1A"; });
-    btn.addEventListener("mouseleave", function() { this.style.borderColor = "#E8E8E4"; });
-    btn.addEventListener("click", function() {
-      document.getElementById("detail-back").onclick = function() { show("result"); };
-      showDetail(this.getAttribute("data-jobid"));
-    });
-    rjobs.appendChild(btn);
+  var list = document.getElementById("card-list");
+  list.innerHTML = "";
+  currentDeck.cards.forEach(function(card, i) {
+    var row = document.createElement("div");
+    row.style.cssText = "background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px";
+    row.innerHTML =
+      '<div style="width:28px;height:28px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);flex-shrink:0;margin-top:1px">' + (i+1) + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">' + card.front + '</div>' +
+        '<div style="font-size:13px;color:var(--text2)">' + card.back + '</div>' +
+      '</div>';
+    list.appendChild(row);
   });
 
-  document.getElementById("btn-retry").textContent = APP_DATA.result_screen.retry_button || "Try Again";
-  document.getElementById("btn-retry").addEventListener("click", function() { quizAnswers = []; show("q1"); });
-  document.getElementById("btn-explore-result").textContent = APP_DATA.result_screen.explore_button || "Explore All";
-  document.getElementById("btn-explore-result").addEventListener("click", function() { show("categories"); });
+  document.getElementById("deck-back").onclick = function() { show("home"); };
+  show("deck");
+}
 
-  show("result");
+// ── Study mode ────────────────────────────────────────────────────────────────
+function startStudy() {
+  if (!currentDeck) return;
+  currentCards = currentDeck.cards.slice().sort(function() { return Math.random() - 0.5; });
+  currentIdx = 0;
+  correct = 0;
+  isFlipped = false;
+  document.getElementById("study-back").onclick = function() { show("deck"); };
+  showCard();
+  show("study");
+}
+
+function showCard() {
+  var card = currentCards[currentIdx];
+  isFlipped = false;
+  var el3d = document.getElementById("card-3d");
+  el3d.classList.remove("flipped");
+  document.getElementById("card-front-text").textContent = card.front;
+  document.getElementById("card-back-text").textContent  = card.back;
+  document.getElementById("card-hint-text").textContent  = card.hint || "";
+  document.getElementById("answer-btns").classList.add("hidden");
+
+  var pct = (currentIdx / currentCards.length) * 100;
+  document.getElementById("study-progress-bar").style.width = pct + "%";
+  document.getElementById("study-progress-text").textContent = "Card " + (currentIdx + 1) + " of " + currentCards.length;
+  document.getElementById("study-score").textContent = correct + " correct";
+}
+
+function flipCard() {
+  if (isFlipped) return;
+  isFlipped = true;
+  document.getElementById("card-3d").classList.add("flipped");
+  setTimeout(function() {
+    document.getElementById("answer-btns").classList.remove("hidden");
+  }, 300);
+}
+
+function markCard(gotIt) {
+  if (gotIt) correct++;
+  currentIdx++;
+  if (currentIdx >= currentCards.length) {
+    showComplete();
+  } else {
+    showCard();
+  }
+}
+
+function showComplete() {
+  var pct = Math.round((correct / currentCards.length) * 100);
+  var emoji = pct >= 80 ? "🎉" : pct >= 60 ? "👍" : "💪";
+  document.querySelector("#screen-complete div").textContent = emoji;
+  document.getElementById("complete-title").textContent = pct >= 80 ? "Nice work!" : pct >= 60 ? "Good effort!" : "Keep practicing!";
+  document.getElementById("complete-score").textContent = correct + " / " + currentCards.length + " correct (" + pct + "%)";
+  document.getElementById("complete-sub").textContent = pct >= 80 ? "You are really getting the hang of this!" : "A little more practice and you will nail it!";
+  document.getElementById("btn-study-again").onclick = startStudy;
+  document.getElementById("btn-back-decks").onclick = function() { show("home"); };
+  show("complete");
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildHome();
-buildCategories();
-buildQuiz();
 show("home");
 </script>
 </body>
