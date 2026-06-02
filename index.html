@@ -54,7 +54,12 @@ body{font-family:"Geist",sans-serif;background:var(--bg);color:var(--text);min-h
   <div style="padding:24px;max-width:640px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <h2 style="font-size:17px;font-weight:700;color:var(--text)">Your Decks</h2>
-      <span id="deck-count" style="font-size:13px;color:var(--text3)"></span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="deck-count" style="font-size:13px;color:var(--text3)"></span>
+        <button class="btn" onclick="show('import')" style="display:flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600">
+          ＋ Import
+        </button>
+      </div>
     </div>
     <div id="deck-grid" style="display:flex;flex-direction:column;gap:12px"></div>
   </div>
@@ -118,8 +123,63 @@ body{font-family:"Geist",sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- IMPORT SCREEN -->
+<div id="screen-import" class="hidden" style="padding:24px;max-width:580px;margin:0 auto">
+  <button class="back-btn" onclick="show('home')">← Back to Decks</button>
+  <h2 style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px">Import Cards</h2>
+  <p style="font-size:14px;color:var(--text2);margin-bottom:20px">Paste text in any supported format — the parser will extract your cards automatically.</p>
+
+  <!-- Format hint -->
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7">
+    <strong style="color:var(--text)">Supported formats:</strong><br>
+    <code style="background:var(--border);padding:1px 4px;border-radius:4px">Q: What is 2+2?  A: 4</code> — Q:/A: prefix<br>
+    <code style="background:var(--border);padding:1px 4px;border-radius:4px">Question[blank line]Answer</code> — blank line pairs<br>
+    <code style="background:var(--border);padding:1px 4px;border-radius:4px">Question[tab]Answer</code> — tab separated
+  </div>
+
+  <!-- Text input -->
+  <div id="import-input-section">
+    <textarea id="import-text" rows="10" placeholder="Paste your cards here...&#10;&#10;Q: What is the capital of France?&#10;A: Paris&#10;&#10;Q: What is 2 + 2?&#10;A: 4"
+      style="width:100%;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px;font-size:14px;color:var(--text);outline:none;resize:vertical;font-family:inherit;line-height:1.6"
+      onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    <button class="btn" onclick="parseImport()" style="width:100%;margin-top:10px;padding:14px;border-radius:12px;background:var(--primary);color:#fff;font-size:15px;font-weight:700">
+      Parse Cards →
+    </button>
+  </div>
+
+  <!-- Preview section (hidden until parsed) -->
+  <div id="import-preview" class="hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 12px">
+      <h3 id="import-count" style="font-size:15px;font-weight:700;color:var(--text)"></h3>
+      <button class="btn" onclick="resetImport()" style="font-size:13px;color:var(--text2);background:none;border:none;text-decoration:underline;cursor:pointer">Start over</button>
+    </div>
+    <div id="import-cards-preview" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:16px"></div>
+
+    <!-- Deck name -->
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text2);display:block;margin-bottom:6px">Add to deck</label>
+      <input id="import-deck-name" placeholder="New deck name (or leave blank to use first deck)"
+        style="width:100%;background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);outline:none;font-family:inherit"
+        onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'" />
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn" onclick="confirmImport()" style="flex:2;padding:14px;border-radius:12px;background:var(--primary);color:#fff;font-size:15px;font-weight:700">Add Cards to App</button>
+      <button class="btn" onclick="resetImport()" style="flex:1;padding:14px;border-radius:12px;background:var(--border);color:var(--text);font-size:14px;font-weight:600">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Success message -->
+  <div id="import-success" class="hidden" style="text-align:center;padding:32px 0">
+    <div style="font-size:48px;margin-bottom:12px">✅</div>
+    <p id="import-success-msg" style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px"></p>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:20px">Your new deck is ready to study.</p>
+    <button class="btn" onclick="show('home')" style="padding:12px 28px;border-radius:12px;background:var(--primary);color:#fff;font-size:14px;font-weight:600">Back to Decks</button>
+  </div>
+</div>
+
 <script>
-var APP_DATA = {"app":{"title":"Flash Card App","subtitle":"Study smarter with spaced repetition and instant sync","emoji":"🃏","primary":"#7C3AED","accent":"#EC4899"},"decks":[{"id":"deck1","title":"FSRS Spaced Repetition","description":"Understand the algorithm powering your retention","emoji":"🧠","cards":[{"front":"What does FSRS stand for?","back":"Free Spaced Repetition Scheduler — a modern, open-source algorithm designed to optimize review intervals for long-term retention.","hint":"Think of it as a smarter Anki algorithm"},{"front":"What is the forgetting curve?","back":"A graph showing how memory decays exponentially over time without review. Discovered by Hermann Ebbinghaus in the 1880s.","hint":"Ebbinghaus — the OG memory researcher"},{"front":"What is a review interval?","back":"The number of days between reviewing a card. FSRS dynamically adjusts this based on your past performance on that specific card.","hint":"Longer interval = stronger memory"},{"front":"What does 'Again' mean in spaced repetition?","back":"You failed to recall the card. The interval resets to a short value (often 1 day) and the card is marked for relearning.","hint":"Do not worry — repetition fixes this"},{"front":"What is retrievability in FSRS?","back":"A value between 0 and 1 representing the estimated probability that you can successfully recall a card right now.","hint":"1.0 = perfect recall confidence"},{"front":"What is stability in FSRS?","back":"A measure of how long a memory is expected to last before retrievability drops to 90%. Higher stability means longer intervals.","hint":"Think of it as memory durability"},{"front":"Why is FSRS better than SM-2?","back":"FSRS uses a neural-network-trained model with more accurate memory parameters, leading to fewer over-reviews and better retention predictions.","hint":"SM-2 is Anki original algorithm"},{"front":"What rating should you give a hard but recalled card?","back":"Rate it 'Hard' — this signals to FSRS that the memory is fragile, so it schedules a shorter interval than 'Good' would.","hint":"Honest ratings improve the schedule"}]},{"id":"deck2","title":"App Feature Vocabulary","description":"Key terms every Flash Card App user should know","emoji":"📱","cards":[{"front":"What is a deck?","back":"A named collection of flashcards grouped by topic. Decks can be created, shared, imported, and studied independently.","hint":"Like a folder for your cards"},{"front":"What is cloud sync?","back":"Automatic saving and syncing of your decks across all your devices — web and iOS — so your progress is never lost.","hint":"Study on phone, review on laptop"},{"front":"What is the Q: / A: import format?","back":"A plain-text delimiter format where each card starts with Q: for the question and A: for the answer on the next line. Used for bulk card import.","hint":"Q: What is water? A: H2O"},{"front":"What is a freemium paywall?","back":"A model where core features are free but premium features (like cross-device sync or AI generation) require a paid subscription.","hint":"Free to start, pay to unlock"},{"front":"What does 'append to deck' mean during import?","back":"Parsed cards from an import are added to the end of an existing deck without deleting or replacing cards already in it.","hint":"Your old cards are safe"},{"front":"What is a shared deck library?","back":"A collection of publicly available decks created by other users that you can copy and study without building from scratch.","hint":"Like a marketplace for flashcards"},{"front":"What is the preview step in card import?","back":"A screen shown after parsing your input that displays all detected Q/A pairs before they are saved, letting you cancel or confirm.","hint":"Review before committing"},{"front":"What is localStorage in this app?","back":"A browser-based storage system used to save your deck data locally on your device without requiring a server or login.","hint":"Data lives in your browser"}]},{"id":"deck3","title":"Biology: Cell Structure","description":"Core cell biology terms for high school and intro college","emoji":"🔬","cards":[{"front":"What is the mitochondria?","back":"The organelle responsible for producing ATP through cellular respiration. Often called the powerhouse of the cell.","hint":"ATP = energy currency of the cell"},{"front":"What is the function of the nucleus?","back":"Stores the cell genetic material (DNA) and controls gene expression, acting as the control center of the cell.","hint":"Think of it as the cell headquarters"},{"front":"What is the endoplasmic reticulum?","back":"A network of membranes involved in protein and lipid synthesis. Rough ER has ribosomes; smooth ER does not.","hint":"Rough = ribosomes attached"},{"front":"What do ribosomes do?","back":"Translate mRNA into proteins. Found free in the cytoplasm or attached to the rough endoplasmic reticulum.","hint":"RNA in, protein out"},{"front":"What is the Golgi apparatus?","back":"Processes, packages, and ships proteins and lipids to their destinations inside or outside the cell.","hint":"The cell postal service"},{"front":"What is the cell membrane made of?","back":"A phospholipid bilayer embedded with proteins. It is selectively permeable, controlling what enters and exits the cell.","hint":"Hydrophilic heads face outward"},{"front":"What is the difference between prokaryotic and eukaryotic cells?","back":"Prokaryotic cells lack a membrane-bound nucleus (bacteria). Eukaryotic cells have a nucleus and membrane-bound organelles (plants, animals, fungi).","hint":"Pro = before nucleus, Eu = true nucleus"},{"front":"What is osmosis?","back":"The passive movement of water across a semipermeable membrane from an area of low solute concentration to high solute concentration.","hint":"Water follows the solute"}]},{"id":"deck4","title":"Spanish Vocabulary: Basics","description":"Essential Spanish words for beginner language learners","emoji":"🇪🇸","cards":[{"front":"How do you say 'hello' in Spanish?","back":"Hola — used as a casual and universal greeting at any time of day.","hint":"Sounds exactly like it looks"},{"front":"What does 'gracias' mean?","back":"Thank you. A polite and essential expression used constantly in everyday conversation.","hint":"Gra-see-as"},{"front":"How do you say 'I do not understand'?","back":"No entiendo — a critical phrase for any beginner navigating real conversations.","hint":"Entender = to understand"},{"front":"What is the difference between 'ser' and 'estar'?","back":"Both mean 'to be'. Ser is used for permanent traits (identity, origin). Estar is used for temporary states (mood, location).","hint":"Ser = permanent, Estar = temporary"},{"front":"How do you say 'Where is the bathroom?'","back":"Donde esta el bano? — one of the most practically useful phrases when traveling.","hint":"Bano = bathroom"},{"front":"What does 'por favor' mean?","back":"Please — used to make requests polite. Combine with gracias for maximum courtesy.","hint":"Por = for, favor = favor"},{"front":"How do you say the numbers 1 to 5 in Spanish?","back":"Uno, dos, tres, cuatro, cinco.","hint":"Dos sounds like 'dose'"},{"front":"What does 'me llamo' mean?","back":"My name is — literally translates to 'I call myself'. Used to introduce yourself.","hint":"Llamo comes from llamarse"}]},{"id":"deck5","title":"Study Skills and Memory Science","description":"Evidence-based techniques to study more effectively","emoji":"📖","cards":[{"front":"What is active recall?","back":"A study technique where you actively retrieve information from memory rather than passively rereading. Significantly more effective for long-term retention.","hint":"Testing yourself beats highlighting"},{"front":"What is the spacing effect?","back":"Learning is more durable when study sessions are spread out over time rather than crammed into one session (massed practice).","hint":"Distributed practice beats cramming"},{"front":"What is interleaving?","back":"Mixing different subjects or problem types within a single study session instead of blocking one topic at a time. Improves transfer and retention.","hint":"Switch topics, do not block them"},{"front":"What is the generation effect?","back":"Information is better remembered when you generate it yourself (writing, explaining) rather than simply reading it.","hint":"Write it out loud in your own words"},{"front":"What is the Feynman Technique?","back":"Explain a concept in simple language as if teaching it to a beginner. Gaps in your explanation reveal gaps in your understanding.","hint":"If you cannot explain it simply, you do not know it yet"},{"front":"What is sleep consolidation?","back":"During sleep, the brain replays and strengthens newly learned memories. Studying before sleep and getting full rest significantly boosts retention.","hint":"Sleep is not optional for studying"},{"front":"What is the testing effect?","back":"Taking practice tests on material improves long-term retention far more than restudying the same material — even when tests are failed.","hint":"Failed tests still build memory"},{"front":"What is cognitive load?","back":"The total mental effort being used in working memory. Overloading it with too many concepts at once reduces learning efficiency.","hint":"Study one concept deeply, not ten shallowly"}]}]};
+var APP_DATA = {"app":{"title":"Flash Card App","subtitle":"Study smarter with spaced repetition and instant sync","emoji":"🃏","primary":"#7C3AED","accent":"#EC4899"},"decks":[{"id":"deck1","title":"Biology 101","description":"Core cell biology and genetics concepts for introductory biology courses","emoji":"🧬","cards":[{"front":"What is the powerhouse of the cell?","back":"The mitochondrion. It produces ATP through cellular respiration, supplying energy for cellular processes.","hint":"Think energy currency"},{"front":"Define mitosis","back":"A type of cell division resulting in two genetically identical daughter cells, used for growth and tissue repair.","hint":"Same genetic copy"},{"front":"What is a dominant allele?","back":"An allele that is expressed in the phenotype even when only one copy is present. Represented by a capital letter (e.g., A).","hint":"Uppercase letter in genetics notation"},{"front":"What does DNA stand for?","back":"Deoxyribonucleic Acid — the molecule that carries genetic information in all living organisms.","hint":"Deoxy = missing an oxygen"},{"front":"What is the role of ribosomes?","back":"Ribosomes synthesize proteins by translating messenger RNA (mRNA) sequences into amino acid chains.","hint":"Found on rough ER or free in cytoplasm"},{"front":"What is natural selection?","back":"The process by which organisms with favorable traits survive and reproduce more successfully, driving evolutionary change.","hint":"Darwin core concept"},{"front":"Define homeostasis","back":"The ability of an organism to maintain stable internal conditions (e.g., temperature, pH) despite external changes.","hint":"Think thermostat for the body"},{"front":"What are the four DNA bases?","back":"Adenine (A), Thymine (T), Guanine (G), and Cytosine (C). A pairs with T, G pairs with C.","hint":"AT the GC concert"}]},{"id":"deck2","title":"Spanish Essentials","description":"High-frequency Spanish vocabulary and phrases for beginner to intermediate learners","emoji":"🇪🇸","cards":[{"front":"How do you say 'I would like' in Spanish?","back":"Quisiera or Me gustaria — both are polite ways to express a desire or request.","hint":"More polite than quiero"},{"front":"What is the difference between ser and estar?","back":"Ser is used for permanent traits (identity, origin, profession). Estar is used for temporary states (feelings, location, condition).","hint":"Ser = permanent, Estar = temporary"},{"front":"Translate: Buenos dias","back":"Good morning. Used until around noon. Followed by Buenos tardes (afternoon) and Buenas noches (evening/night).","hint":"Dias = days"},{"front":"How do you conjugate hablar in present tense (yo)?","back":"Yo hablo — I speak. Regular -ar verbs drop -ar and add: o, as, a, amos, ais, an.","hint":"-ar endings pattern"},{"front":"What does Por favor mean?","back":"Please. Essential polite expression used when making requests in any Spanish-speaking context.","hint":"Favor = favor"},{"front":"Translate: Necesito ayuda","back":"I need help. Necesitar = to need, Ayuda = help.","hint":"Useful emergency phrase"},{"front":"What is the plural of el libro?","back":"Los libros — the books. Masculine singular el becomes plural los, and -o ending nouns add -s.","hint":"El becomes Los"},{"front":"How do you ask someone their name formally?","back":"Como se llama usted? — What is your name? (formal). Informally: Como te llamas?","hint":"Usted = formal you"},{"front":"Translate: Cuanto cuesta?","back":"How much does it cost? Essential shopping phrase. Costar = to cost, Cuanto = how much.","hint":"Cuesta = it costs"}]},{"id":"deck3","title":"U.S. Constitutional Law","description":"Key amendments, landmark cases, and doctrines for pre-law and political science students","emoji":"⚖️","cards":[{"front":"What does the First Amendment protect?","back":"Freedom of speech, religion, press, assembly, and petition. Applies to government restriction, not private actors.","hint":"SRAPP acronym"},{"front":"What was decided in Marbury v. Madison (1803)?","back":"Established the principle of judicial review — the Supreme Court has the power to strike down laws that violate the Constitution.","hint":"Foundation of judicial review"},{"front":"What is the Due Process Clause?","back":"Found in the 5th and 14th Amendments. Prohibits the government from depriving persons of life, liberty, or property without fair legal process.","hint":"Procedural vs substantive due process"},{"front":"What did Brown v. Board of Education (1954) hold?","back":"Racial segregation in public schools is unconstitutional, overturning the separate but equal doctrine from Plessy v. Ferguson.","hint":"Overturned Plessy"},{"front":"What is the Equal Protection Clause?","back":"Part of the 14th Amendment. Requires states to apply the law equally and prohibits arbitrary discrimination.","hint":"14th Amendment, Section 1"},{"front":"What is strict scrutiny?","back":"The highest standard of judicial review. Applied when a law involves a fundamental right or suspect classification (e.g., race). Government must show a compelling interest.","hint":"Highest burden on the government"},{"front":"What does the 4th Amendment protect against?","back":"Unreasonable searches and seizures. Requires warrants to be supported by probable cause and to describe the place and items to be searched.","hint":"Warrant requirement"},{"front":"What is the Commerce Clause?","back":"Article I, Section 8 grants Congress the power to regulate commerce with foreign nations, among states, and with Native American tribes.","hint":"Basis for much federal regulation"}]},{"id":"deck4","title":"Calculus Fundamentals","description":"Core rules, theorems, and definitions for AP Calculus and Calculus I students","emoji":"📐","cards":[{"front":"What is the definition of a derivative?","back":"The derivative of f(x) is the limit of [f(x+h) - f(x)] / h as h approaches 0. It represents the instantaneous rate of change.","hint":"Limit definition — memorize this"},{"front":"State the Power Rule","back":"If f(x) = x^n, then f'(x) = n * x^(n-1). Multiply by the exponent, then reduce the exponent by one.","hint":"Bring down, subtract one"},{"front":"What is the Chain Rule?","back":"If y = f(g(x)), then dy/dx = f'(g(x)) * g'(x). Differentiate the outer function, keep the inner, multiply by the derivative of the inner.","hint":"Outer times inner derivative"},{"front":"What does the Fundamental Theorem of Calculus state?","back":"Part 1: If F is an antiderivative of f on [a,b], then the integral from a to b of f(x)dx = F(b) - F(a). Links differentiation and integration.","hint":"Antiderivative evaluated at bounds"},{"front":"What is a critical point?","back":"A point where f'(x) = 0 or f'(x) is undefined. Critical points are candidates for local maxima and minima.","hint":"Set derivative to zero"},{"front":"What is the integral of 1/x?","back":"ln|x| + C. The absolute value is required because the natural log is only defined for positive numbers.","hint":"Absolute value matters"},{"front":"Define a limit","back":"The value that f(x) approaches as x approaches a given point. Written as lim(x→a) f(x) = L. The function does not need to equal L at that point.","hint":"Approaching, not necessarily equal"},{"front":"What is the Product Rule?","back":"If h(x) = f(x) * g(x), then h'(x) = f'(x)g(x) + f(x)g'(x). Derivative of first times second, plus first times derivative of second.","hint":"First-times-second plus second-times-first"}]},{"id":"deck5","title":"Import Feature Guide","description":"How to use the bulk import feature to create flashcard decks faster","emoji":"📥","cards":[{"front":"How do you access the Import screen?","back":"Tap the Import button on the home or deck screen. It is accessible from the main navigation and opens a dedicated import interface.","hint":"Look for the import icon on the deck screen"},{"front":"What file formats does import support?","back":"CSV files with two columns (front, back) and plain text files with one card per line. Both are accepted in the file upload or text input.","hint":"CSV = comma separated, plain text = one line per card"},{"front":"What is the expected CSV format?","back":"Two columns: the first column is the card front (question or term), the second column is the card back (answer or definition). No header row required.","hint":"front,back — one row per card"},{"front":"What happens after you paste or upload content?","back":"The app parses your input and shows a preview of all detected cards before saving. You can review each front and back before confirming.","hint":"Always preview before confirming"},{"front":"What does the Confirm button do?","back":"Saves all previewed cards to the selected deck and returns you to the deck view. Cards are immediately available for study.","hint":"No undo — review the preview first"},{"front":"What if no deck exists when importing?","back":"The app will prompt you to name a new deck before completing the import. The new deck is created and the cards are added to it.","hint":"You cannot import to nothing — name your deck"},{"front":"Can you import to an existing deck?","back":"Yes. Select the target deck before importing and all parsed cards will be appended to that deck alongside any existing cards.","hint":"Select deck first, then import"}]}]};
 
 // Apply theme
 document.documentElement.style.setProperty("--primary", APP_DATA.app.primary || "#0F766E");
@@ -133,7 +193,7 @@ var correct      = 0;
 var isFlipped    = false;
 
 // ── Router ────────────────────────────────────────────────────────────────────
-var SCREENS = ["home","deck","study","complete"];
+var SCREENS = ["home","deck","study","complete","import"];
 function show(name) {
   SCREENS.forEach(function(s) {
     var el = document.getElementById("screen-" + s);
@@ -259,6 +319,122 @@ function showComplete() {
   document.getElementById("btn-study-again").onclick = startStudy;
   document.getElementById("btn-back-decks").onclick = function() { show("home"); };
   show("complete");
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+var parsedImportCards = [];
+
+function parseImport() {
+  var text = document.getElementById("import-text").value.trim();
+  if (!text) return;
+
+  var cards = [];
+
+  // Format 1: Q:/A: prefix (case insensitive)
+  if (/Q\s*:/i.test(text) && /A\s*:/i.test(text)) {
+    var qaRegex = /Q\s*:\s*([\s\S]*?)(?=\s*A\s*:)\s*A\s*:\s*([\s\S]*?)(?=\s*Q\s*:|$)/gi;
+    var m;
+    while ((m = qaRegex.exec(text)) !== null) {
+      var front = m[1].trim();
+      var back  = m[2].trim();
+      if (front && back) cards.push({ front: front, back: back, hint: "" });
+    }
+  }
+
+  // Format 2: blank-line separated pairs
+  if (cards.length === 0) {
+    var blocks = text.split(/\n\s*\n/).map(function(b) { return b.trim(); }).filter(Boolean);
+    blocks.forEach(function(block) {
+      var lines = block.split("\n").map(function(l) { return l.trim(); }).filter(Boolean);
+      if (lines.length >= 2) {
+        cards.push({ front: lines[0], back: lines.slice(1).join(" "), hint: "" });
+      }
+    });
+  }
+
+  // Format 3: tab-separated per line
+  if (cards.length === 0) {
+    text.split("\n").forEach(function(line) {
+      var parts = line.split("\t");
+      if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) {
+        cards.push({ front: parts[0].trim(), back: parts[1].trim(), hint: "" });
+      }
+    });
+  }
+
+  // Format 4: colon-separated per line (Term: Definition)
+  if (cards.length === 0) {
+    text.split("\n").forEach(function(line) {
+      var colonIdx = line.indexOf(":");
+      if (colonIdx > 0 && colonIdx < line.length - 1) {
+        cards.push({ front: line.slice(0, colonIdx).trim(), back: line.slice(colonIdx + 1).trim(), hint: "" });
+      }
+    });
+  }
+
+  if (cards.length === 0) {
+    alert("Could not parse any cards. Try Q:/A: format or separate question and answer with a blank line.");
+    return;
+  }
+
+  parsedImportCards = cards;
+  document.getElementById("import-input-section").classList.add("hidden");
+  document.getElementById("import-preview").classList.remove("hidden");
+  document.getElementById("import-count").textContent = cards.length + " card" + (cards.length !== 1 ? "s" : "") + " found";
+
+  var preview = document.getElementById("import-cards-preview");
+  preview.innerHTML = "";
+  cards.forEach(function(card, i) {
+    var row = document.createElement("div");
+    row.style.cssText = "background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px";
+    row.innerHTML =
+      '<div style="width:24px;height:24px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0">' + (i+1) + '</div>' +
+      '<div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">' + card.front + '</div>' +
+      '<div style="font-size:12px;color:var(--text2)">' + card.back + '</div></div>';
+    preview.appendChild(row);
+  });
+}
+
+function confirmImport() {
+  if (!parsedImportCards.length) return;
+  var deckName = document.getElementById("import-deck-name").value.trim();
+  var newId = "imported-" + Date.now();
+
+  if (deckName) {
+    APP_DATA.decks.push({
+      id: newId, title: deckName,
+      description: parsedImportCards.length + " imported cards",
+      emoji: "📥", cards: parsedImportCards
+    });
+  } else if (APP_DATA.decks.length > 0) {
+    APP_DATA.decks[0].cards = APP_DATA.decks[0].cards.concat(parsedImportCards);
+  } else {
+    APP_DATA.decks.push({
+      id: newId, title: "Imported Cards",
+      description: parsedImportCards.length + " imported cards",
+      emoji: "📥", cards: parsedImportCards
+    });
+  }
+
+  // Rebuild home deck grid
+  document.getElementById("deck-grid").innerHTML = "";
+  buildHome();
+
+  var msg = deckName
+    ? '"' + deckName + '" created with ' + parsedImportCards.length + " cards"
+    : parsedImportCards.length + " cards added to " + APP_DATA.decks[0].title;
+  document.getElementById("import-success-msg").textContent = msg;
+  document.getElementById("import-preview").classList.add("hidden");
+  document.getElementById("import-success").classList.remove("hidden");
+  parsedImportCards = [];
+}
+
+function resetImport() {
+  parsedImportCards = [];
+  document.getElementById("import-text").value = "";
+  document.getElementById("import-input-section").classList.remove("hidden");
+  document.getElementById("import-preview").classList.add("hidden");
+  document.getElementById("import-success").classList.add("hidden");
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
