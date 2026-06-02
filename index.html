@@ -204,6 +204,34 @@ function show(name) {
   window.scrollTo(0, 0);
 }
 
+function handleUploadImage() {
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.capture = "environment";
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById("import-preview").src = event.target.result;
+        document.getElementById("import-preview").style.display = "block";
+        document.getElementById("confirm-import-btn").style.display = "block";
+        window.importedImageData = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
+function confirmImportImage() {
+  if (window.importedImageData) {
+    window.currentCardImage = window.importedImageData;
+    show("create-card");
+  }
+}
+
 function initImportDocument() {
   var uploadBtn = document.getElementById("upload-image-btn");
   var fileInput = document.getElementById("document-file-input");
